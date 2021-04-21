@@ -19,6 +19,7 @@ describe('test/loader/get_appname.test.js', () => {
     try {
       utils.createApp('app-noname');
     } catch (err) {
+      console.log(err.message);
       assert(err.message.includes(`name is required from ${pkg}`));
       done();
     }

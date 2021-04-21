@@ -22,3 +22,5 @@ exports.foo.bar.operationType = {
   desc: 'account.foo.bar',
   checkSign: true,
 };
+
+exports.noFunction = "hello world";

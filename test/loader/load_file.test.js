@@ -18,7 +18,7 @@ describe('test/load_file.test.js', () => {
   it('should load file when exports is function', () => {
     app = utils.createApp('load_file');
     const exports = app.loader.loadFile(utils.getFilepath('load_file/function.js'), 1, 2);
-    assert.deepEqual(exports, [ 1, 2 ]);
+    assert.deepEqual(exports, [1, 2]);
   });
 
   it('should throw with filepath when file syntax error', () => {

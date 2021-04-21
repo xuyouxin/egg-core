@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = function(app) {
-  app.get('/', function*() {
-    const foo2 = yield this.service.foo2();
+  app.get('/', function*(ctx) {
+    const foo2 = yield ctx.service.foo2();
     const foo3 = yield this.service.foo3.foo3();
     this.body = {
       foo2: foo2,
@@ -11,6 +11,7 @@ module.exports = function(app) {
       foo5: !!this.service.fooDir.foo5,
       foo: !!this.service.foo,
       bar2: !!this.service.bar2,
+      msg: this.service.hello.msg,
     };
   });
 

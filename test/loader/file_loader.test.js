@@ -6,6 +6,7 @@ const path = require('path');
 const is = require('is-type-of');
 const yaml = require('js-yaml');
 const FileLoader = require('../../lib/loader/file_loader');
+
 const dirBase = path.join(__dirname, '../fixtures/load_dirs');
 
 describe('test/loader/file_loader.test.js', () => {
@@ -15,6 +16,8 @@ describe('test/loader/file_loader.test.js', () => {
       directory: path.join(dirBase, 'services'),
       target: services,
     }).load();
+
+    console.log(services);
 
     assert(services.dir.abc);
     assert(services.dir.service);
@@ -57,6 +60,15 @@ describe('test/loader/file_loader.test.js', () => {
       },
       /can't overwrite property 'foo'/
     );
+
+    try {
+      new FileLoader({
+        directory: path.join(dirBase, 'services'),
+        target: app.services,
+      }).load();
+    } catch (e) {
+      console.log('message>>', e.message, '<<');
+    }
   });
 
   it('should not overwrite property from loading', () => {
@@ -127,12 +139,15 @@ describe('test/loader/file_loader.test.js', () => {
       ],
       target: app.middlewares,
       call: false,
-      filters: [ 'm1', 'm2', 'dm1', 'dm2' ],
+      filters: ['m1', 'm2', 'dm1', 'dm2'],
     }).load();
     assert(app.middlewares.m1);
     assert(app.middlewares.m2);
+
+    console.log(app.middlewares.other); // why it have the value?
+
     assert(app.middlewares.dm1);
-    assert(app.middlewares.dm2);
+    console.log(app.middlewares.session); // why it have the value?
   });
 
   it('should support ignore string', () => {
@@ -143,6 +158,8 @@ describe('test/loader/file_loader.test.js', () => {
       ignore: 'util/**',
     }).load();
     assert.deepEqual(app.services.a, { a: 1 });
+
+    assert(!app.services.util);
   });
 
   it('should support ignore array', () => {
@@ -150,9 +167,11 @@ describe('test/loader/file_loader.test.js', () => {
     new FileLoader({
       directory: path.join(dirBase, 'ignore'),
       target: app.services,
-      ignore: [ 'util/a.js', 'util/b/b.js' ],
+      ignore: ['util/a.js', 'util/b/b.js'],
     }).load();
     assert.deepEqual(app.services.a, { a: 1 });
+
+    assert(!app.services.util);
   });
 
   it('should support lowercase first letter', () => {
@@ -160,9 +179,12 @@ describe('test/loader/file_loader.test.js', () => {
     new FileLoader({
       directory: path.join(dirBase, 'lowercase'),
       target: app.services,
-      lowercaseFirst: true,
+      lowercaseFirst: true, // 这是关键点
     }).load();
     assert(app.services.someClass);
+
+    assert(!app.services.SomeClass); // 注意，源文件是首字母大写，被转换成了首字母小写
+
     assert(app.services.someDir);
     assert(app.services.someDir.someSubClass);
   });
@@ -177,10 +199,12 @@ describe('test/loader/file_loader.test.js', () => {
         return new exports(app, opt.path);
       },
     }).load();
+
     assert(app.dao.TestClass);
     assert.deepEqual(app.dao.TestClass.user, { name: 'kai.fangk' });
     assert(app.dao.TestClass.app === app);
     assert(app.dao.TestClass.path === path.join(dirBase, 'dao/TestClass.js'));
+
     assert.deepEqual(app.dao.testFunction, { user: { name: 'kai.fangk' } });
     assert.deepEqual(app.dao.testReturnFunction, { user: { name: 'kai.fangk' } });
   });
@@ -210,6 +234,16 @@ describe('test/loader/file_loader.test.js', () => {
 
   it('should contain syntax error filepath', () => {
     const app = { model: {} };
+
+    try {
+      new FileLoader({
+        directory: path.join(dirBase, 'syntax_error'),
+        target: app.model,
+      }).load();
+    } catch (e) {
+      console.log(e);
+    }
+
     assert.throws(() => {
       new FileLoader({
         directory: path.join(dirBase, 'syntax_error'),
@@ -236,6 +270,7 @@ describe('test/loader/file_loader.test.js', () => {
         target: mod,
       }).load();
     }, /_underscore is not match 'a-z0-9_-' in _underscore\/a.js/);
+
     assert.throws(() => {
       new FileLoader({
         directory: path.join(dirBase, 'error/underscore-file-in-dir'),
@@ -303,6 +338,7 @@ describe('test/loader/file_loader.test.js', () => {
         directory: path.join(dirBase, 'camelize'),
         target,
         caseStyle(filepath) {
+          console.log('filepath>>', filepath);
           return filepath
             .replace('.js', '')
             .split('/')
@@ -318,6 +354,32 @@ describe('test/loader/file_loader.test.js', () => {
 
     it('should throw when caseStyle do not return array', () => {
       const target = {};
+
+      new FileLoader({
+        directory: path.join(dirBase, 'camelize'),
+        target,
+        caseStyle(filepath) {
+          console.log('filepath>>', filepath);
+          return filepath
+            .replace('.js', '')
+            .split('/')
+            .map(property => property.replace(/_/g, '')); // 这样可以，下面的不可以，有点神奇
+        },
+      }).load();
+
+      try {
+        new FileLoader({
+          directory: path.join(dirBase, 'camelize'),
+          target,
+          caseStyle(filepath) {
+            console.log('filepath>>', filepath);
+            return filepath;
+          },
+        }).load();
+      } catch (e) {
+        console.log(e);
+      }
+
       assert.throws(() => {
         new FileLoader({
           directory: path.join(dirBase, 'camelize'),
@@ -342,6 +404,7 @@ describe('test/loader/file_loader.test.js', () => {
       assert(target.fooBar2);
       assert(target.fooBar3);
       assert(target.fooBar4);
+      assert(!target['foo-bar4']);
     });
   });
 
@@ -369,15 +432,16 @@ describe('test/loader/file_loader.test.js', () => {
         return Array.isArray(obj);
       },
     }).load();
-    assert.deepEqual(Object.keys(target), [ 'arr' ]);
+    assert.deepEqual(Object.keys(target), ['arr']);
 
+    const target2 = {};
     new FileLoader({
       directory: path.join(dirBase, 'filter'),
-      target,
+      target: target2,
       filter(obj) {
         return is.class(obj);
       },
     }).load();
-    assert.deepEqual(Object.keys(target), [ 'arr', 'class' ]);
+    assert.deepEqual(Object.keys(target2), ['class']);
   });
 });

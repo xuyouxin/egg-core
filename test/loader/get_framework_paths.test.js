@@ -13,30 +13,35 @@ class Application {
       logger: console,
     });
   }
+
   get [Symbol.for('egg#eggPath')]() {
     return utils.getFilepath('egg');
   }
-  close() {}
+
+  close() {
+  }
 }
 
-describe('test/loader/get_framework_paths.test.js', function() {
+describe('test/loader/get_framework_paths.test.js', function () {
   let app;
   afterEach(mm.restore);
   afterEach(() => app && app.close());
 
-  it('should get from paramter', function() {
+  it('should get from paramter', function () {
     app = utils.createApp('eggpath');
-    assert.deepEqual(app.loader.eggPaths, [ utils.getFilepath('egg') ]);
+    assert.deepEqual(app.loader.eggPaths, [utils.getFilepath('egg')]);
+    console.log(app.loader.eggPaths);
   });
 
-  it('should get from framework using symbol', function() {
+  it('should get from framework using symbol', function () {
     app = utils.createApp('eggpath', {
       Application: require(utils.getFilepath('framework-symbol')),
     });
+    console.log(app.loader.eggPaths);
     assert.deepEqual(app.loader.eggPaths, [
-      utils.getFilepath('egg'),
-      utils.getFilepath('framework-symbol/node_modules/framework2'),
-      utils.getFilepath('framework-symbol'),
+      utils.getFilepath('egg'), // 父类
+      utils.getFilepath('framework-symbol/node_modules/framework2'), // 子类
+      utils.getFilepath('framework-symbol'), // 孙子类
     ]);
   });
 

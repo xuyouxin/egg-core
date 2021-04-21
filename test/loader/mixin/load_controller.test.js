@@ -8,12 +8,12 @@ const utils = require('../../utils');
 
 describe('test/loader/mixin/load_controller.test.js', () => {
   let app;
-  before(() => {
+  beforeEach(() => {
     app = utils.createApp('controller-app');
     app.loader.loadAll();
     return app.ready();
   });
-  after(() => app.close());
+  afterEach(() => app.close());
 
   describe('when controller is async function', () => {
     it('should use it as middleware', () => {
@@ -50,6 +50,7 @@ describe('test/loader/mixin/load_controller.test.js', () => {
   });
 
   describe('when controller is object', () => {
+
     it('should define method which is function', () => {
       assert(app.controller.object.callFunction);
       assert(app.controller.object.callFunction.name === 'objectControllerMiddleware');
@@ -149,12 +150,12 @@ describe('test/loader/mixin/load_controller.test.js', () => {
       await request(app.callback())
         .get('/resources-object')
         .expect(200)
-        .expect('index');
+        .expect('index'); // get对应index方法？
 
       await request(app.callback())
         .post('/resources-object')
         .expect(200)
-        .expect('create');
+        .expect('create'); // post对应create方法？
 
       await request(app.callback())
         .post('/resources-object/1')
@@ -163,6 +164,7 @@ describe('test/loader/mixin/load_controller.test.js', () => {
   });
 
   describe('when controller is class', () => {
+
     it('should define method which is function', () => {
       assert(app.controller.class.callFunction);
       assert(app.controller.class.callFunction.name === 'classControllerMiddleware');
@@ -278,12 +280,12 @@ describe('test/loader/mixin/load_controller.test.js', () => {
       await request(app.callback())
         .get('/resources-class')
         .expect(200)
-        .expect('index');
+        .expect('index'); // get对应index方法？
 
       await request(app.callback())
         .post('/resources-class')
         .expect(200)
-        .expect('create');
+        .expect('create'); // post对应create方法？
 
       await request(app.callback())
         .post('/resources-class/1')
@@ -382,7 +384,7 @@ describe('test/loader/mixin/load_controller.test.js', () => {
 
     it('should support parameter', async () => {
       const ctx = { app };
-      const args = [ 1, 2, 3 ];
+      const args = [1, 2, 3];
       let r = await app.controller.generatorFunction.call(ctx, ...args);
       assert.deepEqual(args, r);
       r = await app.controller.object.callFunction.call(ctx, ...args);

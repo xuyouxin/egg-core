@@ -6,7 +6,7 @@ const mm = require('mm');
 const assert = require('assert');
 const utils = require('../../utils');
 
-describe('test/loader/mixin/load_service.test.js', function() {
+describe('test/loader/mixin/load_service.test.js', function () {
   let app;
   afterEach(mm.restore);
   afterEach(() => app.close());
@@ -23,8 +23,15 @@ describe('test/loader/mixin/load_service.test.js', function() {
     assert(app.serviceClasses.foo);
     assert(app.serviceClasses.foo2);
     assert(!app.serviceClasses.bar1);
-    assert(app.serviceClasses.bar2);
+    assert(app.serviceClasses.bar2); // plugin 里面的service 也会被加载进来
     assert(app.serviceClasses.foo4);
+
+    console.log('bar2>>', app.serviceClasses.bar2);
+
+    // bar2>> [Function: Bar2] {
+    //       [Symbol(EGG_LOADER_ITEM_FULLPATH)]: '/Users/travis.xu/work_openSource/egg-core/test/fixtures/plugin/node_modules/b/app/service/bar2.js',
+    //       [Symbol(EGG_LOADER_ITEM_EXPORTS)]: true
+    //     }
 
     await request(app.callback())
       .get('/')
@@ -35,32 +42,38 @@ describe('test/loader/mixin/load_service.test.js', function() {
         foo5: true,
         foo: true,
         bar2: true,
+        msg: 'hello world',
       })
       .expect(200);
   });
 
-  it('should throw when dulplicate', function() {
+  it('should throw when dulplicate', function () {
     assert.throws(() => {
       app = utils.createApp('service-override');
       app.loader.loadPlugin();
       app.loader.loadConfig();
       app.loader.loadService();
-    }, /can't overwrite property 'foo'/);
+    }, /can't overwrite property 'foo'/); // application里的service与 plugin里的service，名词重复了，会报错
   });
 
-  it('should check es6', function() {
+  it('should check es6', function () {
     app = utils.createApp('services_loader_verify');
     app.loader.loadPlugin();
     app.loader.loadConfig();
     app.loader.loadApplicationExtend();
     app.loader.loadService();
-    assert('foo' in app.serviceClasses);
-    assert('bar' in app.serviceClasses.foo);
-    assert('bar1' in app.serviceClasses.foo);
-    assert('aa' in app.serviceClasses.foo);
+    // assert('foo' in app.serviceClasses);
+    // assert('bar' in app.serviceClasses.foo);
+    // assert('bar1' in app.serviceClasses.foo);
+    // assert('aa' in app.serviceClasses.foo);
+
+    assert('foo' in app.service);
+    assert('bar' in app.service.foo);
+    assert('bar1' in app.service.foo);
+    assert('aa' in app.service.foo);
   });
 
-  it('should each request has unique ctx', async () => {
+  it('should each request has unique ctx', async () => { // 每个请求有唯一的上下文
     app = utils.createApp('service-unique');
     app.loader.loadPlugin();
     app.loader.loadConfig();
@@ -93,13 +106,13 @@ describe('test/loader/mixin/load_service.test.js', function() {
 
     await request(app.callback())
       .get('/user')
-      .expect(function(res) {
+      .expect(function (res) {
         assert(res.body.user === '123mock');
       })
       .expect(200);
   });
 
-  describe('subdir', function() {
+  describe('subdir', function () {
     it('should load 2 level dir', async () => {
       mm(process.env, 'NO_DEPRECATION', '*');
       app = utils.createApp('subdir-services');

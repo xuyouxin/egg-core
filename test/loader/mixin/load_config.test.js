@@ -33,7 +33,7 @@ describe('test/loader/mixin/load_config.test.js', () => {
     const loader = app.loader;
     loader.loadPlugin();
     loader.loadConfig();
-    assert(loader.config.name === 'override default');
+    assert(loader.config.name === 'override default'); // why?
   });
 
   it('should load application config overriding plugin', () => {
@@ -41,7 +41,7 @@ describe('test/loader/mixin/load_config.test.js', () => {
     const loader = app.loader;
     loader.loadPlugin();
     loader.loadConfig();
-    assert(loader.config.plugin === 'override plugin');
+    assert(loader.config.plugin === 'override plugin'); // configured in config/config.js
   });
 
   // egg config.default
@@ -53,7 +53,8 @@ describe('test/loader/mixin/load_config.test.js', () => {
     const loader = app.loader;
     loader.loadPlugin();
     loader.loadConfig();
-    assert(loader.config.egg === 'egg-unittest');
+    console.log('loader.config.egg>>', loader.config.egg);
+    assert(loader.config.egg === 'egg-default'); // configured in config/config.js
   });
 
   it('should override config by env.EGG_APP_CONFIG', () => {
@@ -67,20 +68,22 @@ describe('test/loader/mixin/load_config.test.js', () => {
     const loader = app.loader;
     loader.loadPlugin();
     loader.loadConfig();
-    assert(loader.config.egg === 'env_egg');
-    assert(loader.config.foo.bar === 'env_bar');
+    assert(loader.config.egg === 'env_egg'); // 覆盖了config/config.js 里面的值
+    assert(loader.config.foo.bar === 'env_bar'); // 覆盖了config/config.js 里面的值
     assert(loader.config.foo.bar2 === 'b');
     assert(loader.configMeta.egg === '<process.env.EGG_APP_CONFIG>');
     assert(loader.configMeta.foo.bar === '<process.env.EGG_APP_CONFIG>');
+    console.log('loader.configMeta.foo.bar>>', loader.configMeta.foo.bar); // loader.configMeta 里面记录了值的来源
+    console.log('loader.configMeta.foo.bar2>>', loader.configMeta.foo.bar2); // loader.configMeta 里面记录了值的来源
   });
 
   it('should override config with invalid env.EGG_APP_CONFIG', () => {
-    mm(process.env, 'EGG_APP_CONFIG', 'abc');
+    mm(process.env, 'EGG_APP_CONFIG', 'abc'); // EGG_APP_CONFIG 必须是json格式的字符串，否则不生效
     app = utils.createApp('config-env-app-config');
     const loader = app.loader;
     loader.loadPlugin();
     loader.loadConfig();
-    assert(loader.config.egg === 'egg-unittest');
+    assert(loader.config.egg === 'egg-default');
     assert(loader.config.foo.bar === 'a');
     assert(loader.config.foo.bar2 === 'b');
   });
@@ -118,7 +121,7 @@ describe('test/loader/mixin/load_config.test.js', () => {
     assert.throws(() => {
       app.loader.loadPlugin();
       app.loader.loadConfig();
-    }, new RegExp('Can not define coreMiddleware in app or plugin'));
+    }, new RegExp('Can not define coreMiddleware in app or plugin')); // coreMiddleware 只能在framework里面定义？
   });
 
   it('should read appinfo from the function of config', () => {
@@ -127,8 +130,9 @@ describe('test/loader/mixin/load_config.test.js', () => {
     loader.loadPlugin();
     loader.loadConfig();
     assert(loader.config.plugin.val === 2);
-    assert(loader.config.plugin.val === 2);
     assert(loader.config.plugin.sub !== loader.config.app.sub);
+    assert(loader.config.plugin.sub.val === 2);
+    assert(loader.config.app.sub.val === 1);
     assert(loader.config.appInApp === false);
   });
 
@@ -145,7 +149,8 @@ describe('test/loader/mixin/load_config.test.js', () => {
     app = utils.createApp('config-array');
     app.loader.loadPlugin();
     app.loader.loadConfig();
-    assert.deepEqual(app.config.array, [ 1, 2 ]);
+    assert.deepEqual(app.config.array, [ 1, 2 ]); // the config in plugin b override the config in plugin a
+    // plugin 的config文件 export的值，直接挂载到了app.config上面
   });
 
   it('should generate configMeta', () => {
@@ -154,7 +159,7 @@ describe('test/loader/mixin/load_config.test.js', () => {
     app.loader.loadConfig();
     const configMeta = app.loader.configMeta;
     const configPath = utils.getFilepath('configmeta/config/config.js');
-    assert(configMeta.console === configPath);
+    assert(configMeta.console === configPath); // loader.configMeta 里面记录了值的来源
     assert(configMeta.array === configPath);
     assert(configMeta.buffer === configPath);
     assert(configMeta.ok === configPath);
@@ -192,7 +197,7 @@ describe('test/loader/mixin/load_config.test.js', () => {
       const loader = app.loader;
       loader.loadPlugin();
       app.loader.loadConfig();
-      assert(loader.config.from === 'prod');
+      assert(loader.config.from === 'prod'); // 先加载default的，后加载prod的，后加载的覆盖先加载的
     });
 
     it('should return with scope when env = default', async () => {

@@ -12,8 +12,8 @@ fs.symlinkSync(
   'dir'
 );
 
-const EggCore = require('egg-core').EggCore;
-const EggLoader = require('egg-core').EggLoader;
+const EggCore = require('../../..').EggCore;
+const EggLoader = require('../../..').EggLoader;
 
 class AppLoader extends EggLoader {
   loadAll() {

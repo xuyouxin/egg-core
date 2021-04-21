@@ -11,9 +11,11 @@ const getPlugins = require('egg-utils').getPlugins;
 
 describe('test/loader/egg_loader.test.js', () => {
   let app;
-  before(() => {
+  beforeEach(() => {
     app = utils.createApp('nothing');
   });
+
+  afterEach(() => app.close());
 
   it('should container FileLoader and ContextLoader', () => {
     assert(app.loader.FileLoader);
@@ -29,6 +31,9 @@ describe('test/loader/egg_loader.test.js', () => {
         delete userInfo.homedir;
         mm(os, 'userInfo', () => userInfo);
       }
+
+      console.log(app.loader.getHomedir());
+
       assert(app.loader.getHomedir() === process.env.HOME);
     });
 
@@ -89,7 +94,11 @@ describe('test/loader/egg_loader.test.js', () => {
       app,
       logger: console,
     });
+    console.log(prop);
+    console.log(app);
     loader.loadToApp(directory, prop);
+    console.log(prop);
+    console.log(app);
     assert(app[prop].user);
   });
 
@@ -103,7 +112,11 @@ describe('test/loader/egg_loader.test.js', () => {
       app,
       logger: console,
     });
+
+    console.log(app);
     loader.loadToContext(directory, prop);
+    console.log(app); // 因为prop是个Symbol，这样竟然打印不出来
+    console.log(app.context[prop].user)
     assert(app.context[prop].user);
   });
 });

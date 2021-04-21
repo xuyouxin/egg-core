@@ -77,7 +77,7 @@ describe('test/load_plugin.test.js', function() {
     assert.deepEqual(loader.plugins.rds, {
       enable: true,
       name: 'rds',
-      dependencies: [ 'session' ],
+      dependencies: [ 'session' ], // dep 是 dependencies 的简写
       optionalDependencies: [],
       env: [],
       package: 'rds',
@@ -212,7 +212,7 @@ describe('test/load_plugin.test.js', function() {
       const loader = app.loader;
       loader.loadPlugin();
       loader.loadConfig();
-    }, /Can not find plugin noexist in /);
+    }, /Can not find plugin noexist in /); // 不存在会报错
   });
 
   it('should throw when the dependent plugin is disabled', function() {
@@ -221,7 +221,7 @@ describe('test/load_plugin.test.js', function() {
       const loader = app.loader;
       loader.loadPlugin();
       loader.loadConfig();
-    }, /Can not find plugin @ali\/b in /);
+    }, /Can not find plugin @ali\/b in /); // 如果依赖的plugin 的状态是disabled，会报错
   });
 
   it('should make order', function() {
@@ -247,7 +247,7 @@ describe('test/load_plugin.test.js', function() {
 
   it('should throw when plugin is recursive', function() {
     assert.throws(() => {
-      app = utils.createApp('plugin-dep-recursive');
+      app = utils.createApp('plugin-dep-recursive'); // 循环依赖会报错
       const loader = app.loader;
       loader.loadPlugin();
       loader.loadConfig();
@@ -256,7 +256,7 @@ describe('test/load_plugin.test.js', function() {
 
   it('should throw when the dependent plugin not exist', function() {
     assert.throws(() => {
-      app = utils.createApp('plugin-dep-missing');
+      app = utils.createApp('plugin-dep-missing'); // 依赖的plugin 不存在会报错
       const loader = app.loader;
       loader.loadPlugin();
       loader.loadConfig();
@@ -384,7 +384,7 @@ describe('test/load_plugin.test.js', function() {
     }, /sequencify plugins has problem, missing: \[b], recursive: \[]\n\t>> Plugin \[b] is disabled or missed, but is required by \[a]/);
   });
 
-  it('should pick path or package when override config', function() {
+  it('should pick path or package when override config', function() { // app 的plugin 可以覆盖 framework 的 plugin
     app = utils.createApp('plugin-path-package');
     const loader = app.loader;
     loader.loadPlugin();
@@ -421,7 +421,7 @@ describe('test/load_plugin.test.js', function() {
     });
     const loader = app.loader;
     loader.loadPlugin();
-    assert(loader.plugins.a.from === utils.getFilepath('plugin-from/config/plugin.js'));
+    assert(loader.plugins.a.from === utils.getFilepath('plugin-from/config/plugin.js')); // from 属性记录了 plugin 在哪里配置的
     assert(loader.plugins.b.from === utils.getFilepath('plugin-from/framework/config/plugin.js'));
   });
 
@@ -482,7 +482,7 @@ describe('test/load_plugin.test.js', function() {
     assert.deepEqual(loader.orderPlugins.slice(2).map(p => p.name), [ 'package', 'e', 'b', 'a', 'f' ]);
   });
 
-  it('should warn when redefine plugin', () => {
+  it('should warn when redefine plugin -', () => {
     app = utils.createApp('redefine-plugin');
     const warn = spy();
     mm(app.console, 'warn', warn);

@@ -5,9 +5,9 @@ const assert = require('assert');
 const request = require('supertest');
 const utils = require('../../utils');
 
-describe('test/loader/mixin/load_middleware.test.js', function() {
+describe('test/loader/mixin/load_middleware.test.js', function () {
   let app;
-  before(function() {
+  beforeEach(function () {
     app = utils.createApp('middleware-override');
     app.loader.loadPlugin();
     app.loader.loadConfig();
@@ -16,9 +16,9 @@ describe('test/loader/mixin/load_middleware.test.js', function() {
     app.loader.loadController();
     app.loader.loadRouter();
   });
-  after(() => app.close());
+  afterEach(() => app.close());
 
-  it('should load application, plugin, and default middlewares', function() {
+  it('should load application, plugin, and default middlewares', function () {
     assert('static' in app.middlewares);
     assert('status' in app.middlewares);
     assert('custom' in app.middlewares);
@@ -26,7 +26,7 @@ describe('test/loader/mixin/load_middleware.test.js', function() {
     assert(!('a' in app.middlewares));
   });
 
-  it('should also support app.middleware', function() {
+  it('should also support app.middleware', function () {
     assert('static' in app.middleware);
     assert('status' in app.middleware);
     assert('custom' in app.middleware);
@@ -58,17 +58,17 @@ describe('test/loader/mixin/load_middleware.test.js', function() {
       .expect('static');
   });
 
-  it('should throw when middleware return no-generator', function() {
+  it('should throw when middleware return no-generator', function () {
     const app = utils.createApp('custom_session_invaild');
     assert.throws(() => {
       app.loader.loadPlugin();
       app.loader.loadConfig();
       app.loader.loadCustomApp();
       app.loader.loadMiddleware();
-    }, /Middleware session must be a function, but actual is {}/);
+    }, /Middleware session must be a function, but actual is {}/); // middleware 是个普通方法的话，会抛异常
   });
 
-  it('should throw when not load that is not configured', function() {
+  it('should throw when not load that is not configured', function () {
     const app = utils.createApp('no-middleware');
     assert.throws(() => {
       app.loader.loadPlugin();
@@ -78,7 +78,7 @@ describe('test/loader/mixin/load_middleware.test.js', function() {
     }, /Middleware a not found/);
   });
 
-  it('should throw when middleware name redefined', function() {
+  it('should throw when middleware name redefined', function () {
     const app = utils.createApp('middleware-redefined');
     assert.throws(() => {
       app.loader.loadPlugin();
@@ -89,7 +89,7 @@ describe('test/loader/mixin/load_middleware.test.js', function() {
   });
 
   it('should core middleware support options.enable', async () => {
-    const app = utils.createApp('middleware-disable');
+    const app = utils.createApp('middleware-disable'); // 可以配置把某个middleware 禁用掉
     app.loader.loadPlugin();
     app.loader.loadConfig();
     app.loader.loadCustomApp();
@@ -114,11 +114,11 @@ describe('test/loader/mixin/load_middleware.test.js', function() {
 
     await request(app.callback())
       .get('/status')
-      .expect('egg status');
+      .expect('egg status'); // 匹配get请求
 
     await request(app.callback())
       .post('/status')
-      .expect(404);
+      .expect(404); // 不匹配post请求
     app.close();
   });
 
@@ -136,7 +136,7 @@ describe('test/loader/mixin/load_middleware.test.js', function() {
       .expect('egg status');
 
     await request(app.callback())
-      .get('/status')
+      .get('/status') // get请求，被ignore掉了
       .expect(404);
     app.close();
   });
@@ -158,7 +158,7 @@ describe('test/loader/mixin/load_middleware.test.js', function() {
 
   describe('async functions and common functions', () => {
     let app;
-    before(() => {
+    beforeEach(() => {
       app = utils.createApp('middleware-aa');
       app.loader.loadPlugin();
       app.loader.loadConfig();
@@ -168,7 +168,7 @@ describe('test/loader/mixin/load_middleware.test.js', function() {
       app.loader.loadRouter();
     });
 
-    after(() => app.close());
+    afterEach(() => app.close());
 
     it('should support config.middleware', async () => {
       await request(app.callback())

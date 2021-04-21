@@ -6,10 +6,12 @@ const utils = require('../utils');
 
 describe('test/loader/context_loader.test.js', () => {
   let app;
-  before(() => {
+  beforeEach(() => {
     app = utils.createApp('context-loader');
     app.loader.loadAll();
   });
+
+  afterEach(() => app.close());
 
   it('should load files ', async () => {
     const directory = path.join(__dirname, '../fixtures/context-loader/app/depth');
@@ -58,6 +60,7 @@ describe('test/loader/context_loader.test.js', () => {
   });
 
   it('should load file with pathname and config', async () => {
+    console.log("123");
     const directory = path.join(__dirname, '../fixtures/context-loader/app/pathname');
     app.loader.loadToContext(directory, 'pathname');
 
@@ -70,7 +73,9 @@ describe('test/loader/context_loader.test.js', () => {
       .get('/config')
       .expect('config')
       .expect(200);
-  });
+
+    console.log("abc");
+  }, 10e3);
 
   it('should load file with service', () => {
     return request(app.callback())

@@ -6,13 +6,13 @@ const utils = require('../../utils');
 describe('test/loader/mixin/load_custom_app.test.js', () => {
   describe('app.js as function', () => {
     let app;
-    before(() => {
+    beforeEach(() => {
       app = utils.createApp('plugin');
       app.loader.loadPlugin();
       app.loader.loadConfig();
       app.loader.loadCustomApp();
     });
-    after(() => app.close());
+    afterEach(() => app.close());
 
     it('should load app.js', () => {
       assert(app.b === 'plugin b');
